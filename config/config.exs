@@ -1,11 +1,11 @@
 # This file is responsible for configuring your application
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
-config :ddog, monitor_url: "https://api.datadoghq.com/api/v1/monitor"
-config :ddog, monitor_search_url: "https://api.datadoghq.com/api/v1/monitor/search"
-config :ddog, monitor_downtime_url: "https://api.datadoghq.com/api/v1/downtime"
 
 config :ddog,
+  monitor_url: "https://api.datadoghq.com/api/v1/monitor",
+  monitor_search_url: "https://api.datadoghq.com/api/v1/monitor/search",
+  monitor_downtime_url: "https://api.datadoghq.com/api/v1/downtime",
   monitor_cancel_downtime_byscope_url: "https://api.datadoghq.com/api/v1/downtime/cancel/by_scope"
 
 # This configuration is loaded before any dependency and is restricted
