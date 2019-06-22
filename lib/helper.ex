@@ -26,8 +26,8 @@ defmodule Ddog.Helper do
     {:error, body}
   end
 
-  @api_key System.get_env("DATADOG_API_KEY")
-  @app_key System.get_env("DATADOG_APP_KEY")
+  @api_key Application.get_env(:ddog, :api_key)
+  @app_key Application.get_env(:ddog, :app_key)
   def auth do
     case check_creds() do
       {:error, message} ->
@@ -48,21 +48,6 @@ defmodule Ddog.Helper do
   end
 
   def check_creds do
-    cond do
-      System.get_env("DATADOG_API_KEY") == "" ->
-        {:error, "ENV variable not set: DATADOG_API_KEY"}
-
-      System.get_env("DATADOG_APP_KEY") == "" ->
-        {:error, "ENV variable not set: DATADOG_APP_KEY"}
-
-      System.get_env("DATADOG_API_KEY") == nil ->
-        {:error, "ENV variable not set: DATADOG_API_KEY"}
-
-      System.get_env("DATADOG_APP_KEY") == nil ->
-        {:error, "ENV variable not set: DATADOG_APP_KEY"}
-
-      true ->
-        {:ok, %{"api_key" => @api_key, "application_key" => @app_key}}
-    end
+    {:ok, %{"api_key" => @api_key, "application_key" => @app_key}}
   end
 end
