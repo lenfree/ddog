@@ -8,7 +8,7 @@ config :ddog,
   monitor_downtime_url: "https://api.datadoghq.com/api/v1/downtime",
   monitor_cancel_downtime_byscope_url:
     "https://api.datadoghq.com/api/v1/downtime/cancel/by_scope",
-  api_key: System.get_env("DATADOG_API_KEY") || raise("NOT SET"),
+  api_key: System.get_env("DATADOG_API_KEY"),
   app_key: System.get_env("DATADOG_APP_KEY")
 
 # This configuration is loaded before any dependency and is restricted
