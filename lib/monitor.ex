@@ -30,8 +30,8 @@ defmodule Ddog.Monitor do
 
         iex> Monitor.call(
           :search,
-          %Ddog.MonitorQueryTag{
-            tag: Ddog.Helper.build_query("env:test localhost")
+          %{
+            query: Ddog.Helper.build_query("env:test localhost")
           })
         {:ok, %HTTPoison.Response.Body{}}
 
@@ -59,7 +59,7 @@ defmodule Ddog.Monitor do
     |> Helper.handle_response()
   end
 
-  def call(:search = action, %MonitorQueryTag{} = tags) do
+  def call(:search = action, %{query: _tag} = tags) do
     action
     |> dd_url(tags)
     |> HTTPoison.get(headers())
@@ -102,13 +102,13 @@ defmodule Ddog.Monitor do
   end
 
   @monitor_search_url Application.get_env(:ddog, :monitor_search_url)
-  defp dd_url(:search, %Ddog.MonitorQueryTag{} = tags) do
+  defp dd_url(:search, %{query: _tag} = tags) do
     @monitor_search_url
     |> Helper.add_auth(tags)
   end
 
   @doc """
-  Accepts a map of monitors and returns a list of map of id, name,
+  Accepts a list of map of monitors and returns a list of map of id, name,
   metrics, status and tags.
 
   Returns `[%{
@@ -151,7 +151,7 @@ defmodule Ddog.Monitor do
         }]
 
   """
-  def get_monitor_details(%{"monitors" => monitors}) when is_map(monitors) do
+  def get_monitor_details(%{"monitors" => monitors}) when is_list(monitors) do
     monitors
     |> List.flatten()
     |> Enum.map(

@@ -12,10 +12,3 @@ defmodule Ddog.CancelMonitorDowntime do
   """
   defstruct scope: nil
 end
-
-defmodule Ddog.MonitorQueryTag do
-  @doc """
-  A struct describing how to search for monitor/s.
-  """
-  defstruct tag: nil
-end

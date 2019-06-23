@@ -29,15 +29,15 @@ defmodule Ddog.Helper do
     Poison.encode!(%{monitor: monitor}, pretty: true)
   end
 
-  defp handle_response({:ok, %{status_code: 200, body: body}}) do
+  def handle_response({:ok, %{status_code: 200, body: body}}) do
     {:ok, body}
   end
 
-  defp handle_response({:ok, %{status_code: 400, body: body}}) do
+  def handle_response({:ok, %{status_code: 400, body: body}}) do
     {:ok, body}
   end
 
-  defp handle_response({_, {:error, body}, %{status_code: _, body: body}}) do
+  def handle_response({_, {:error, body}, %{status_code: _, body: body}}) do
     {:error, body}
   end
 
@@ -51,7 +51,7 @@ defmodule Ddog.Helper do
     end
   end
 
-  defp add_auth(url, query \\ %{}) do
+  def add_auth(url, query \\ %{}) do
     path =
       auth()
       |> Enum.into(query)
