@@ -1,11 +1,57 @@
 defmodule Ddog.Monitor do
   alias HTTPoison
   alias Ddog.Helper
+  alias Ddog.MonitorQueryTag
+  alias Ddog.SetMonitorDowntime
+  alias Ddog.CancelMonitorDowntime
 
   defp headers do
     [{"Content-type", "application/json"}]
   end
 
+  @doc """
+  Call receives an action atom to manage Datadog monitor and returns
+  {:ok, HTTPoison.Response.body} when successful and
+  {:error, HTTPoison.Response.Body} when error. Possible values are:
+  :list_all which returns all monitors, :search which accepts a list of tags
+  and returns a list of monitors that matches the tags, :set_monitor_downtime
+  which accepts SetMonitorDowntime struct and set monitor downtime,
+  :cancel_monitor_downtime_by_scope which accepts a scope to cancel
+  monitor downtime.
+
+  Returns `{:ok, %HTTPoison.Response.Body{}}`.
+
+    ## Examples
+
+
+        iex> Monitor.call(:list_all)
+        {:ok, %HTTPoison.Response.Body{}}
+
+
+        iex> Monitor.call(
+          :search,
+          %Ddog.MonitorQueryTag{
+            tag: Ddog.Helper.build_query("env:test localhost")
+          })
+        {:ok, %HTTPoison.Response.Body{}}
+
+        iex> Monitor.call(
+          :set_monitor_downtime,
+          %Ddog.SetMonitorDowntime{
+              monitor_tags: Ddog.Helper.build_query("env:test localhost"),
+              scope: "env:test",
+              end: end_downtime,
+              message: "scheduled upgrade"
+          })
+        {:ok, %HTTPoison.Response.Body{}}
+
+        iex> Monitor.call(
+          :cancel_monitor_downtime_by_scope,
+          %Ddog.SetMonitorDowntime{
+              scope: "env:test"
+          })
+        {:ok, %HTTPoison.Response.Body{}}
+  """
   def call(:list_all = action) do
     action
     |> dd_url()
@@ -13,21 +59,21 @@ defmodule Ddog.Monitor do
     |> Helper.handle_response()
   end
 
-  def call(:search = action, query) do
+  def call(:search = action, %MonitorQueryTag{} = tags) do
     action
-    |> dd_url(query)
+    |> dd_url(tags)
     |> HTTPoison.get(headers())
     |> Helper.handle_response()
   end
 
-  def call(:set_monitor_downtime = action, body) do
+  def call(:set_monitor_downtime = action, %SetMonitorDowntime{} = body) do
     action
     |> dd_url()
     |> HTTPoison.post(body |> Poison.encode!(), headers())
     |> Helper.handle_response()
   end
 
-  def call(:cancel_monitor_downtime_by_scope = action, body) do
+  def call(:cancel_monitor_downtime_by_scope = action, %CancelMonitorDowntime{} = body) do
     action
     |> dd_url()
     |> HTTPoison.post(body |> Poison.encode!(), headers())
@@ -35,13 +81,13 @@ defmodule Ddog.Monitor do
   end
 
   @monitor_url Application.get_env(:ddog, :monitor_url)
-  def dd_url(:list_all) do
+  defp dd_url(:list_all) do
     @monitor_url
     |> Helper.add_auth()
   end
 
   @monitor_downtime_url Application.get_env(:ddog, :monitor_downtime_url)
-  def dd_url(:set_monitor_downtime) do
+  defp dd_url(:set_monitor_downtime) do
     @monitor_downtime_url
     |> Helper.add_auth()
   end
@@ -50,17 +96,61 @@ defmodule Ddog.Monitor do
                                          :ddog,
                                          :monitor_cancel_downtime_byscope_url
                                        )
-  def dd_url(:cancel_monitor_downtime_by_scope) do
+  defp dd_url(:cancel_monitor_downtime_by_scope) do
     @monitor_cancel_downtime_byscope_url
     |> Helper.add_auth()
   end
 
   @monitor_search_url Application.get_env(:ddog, :monitor_search_url)
-  def dd_url(:search, query) do
+  defp dd_url(:search, %Ddog.MonitorQueryTag{} = tags) do
     @monitor_search_url
-    |> Helper.add_auth(query)
+    |> Helper.add_auth(tags)
   end
 
+  @doc """
+  Accepts a map of monitors and returns a list of map of id, name,
+  metrics, status and tags.
+
+  Returns `[%{
+        id: id,
+        name: "name",
+        metrics: "metrics",
+        status: "status",
+        tags: ["tags"],
+        scopes: ["scopes"]
+  }`
+
+    ## Examples
+
+
+        iex> Monitor.get_monitor_details(%{"monitors" => [{
+            "type": "service check",
+            "tags": [
+              "monitor_id:host_is_up",
+              "env:test",
+            ],
+            "status": "OK",
+            "scopes": [
+              "env:test"
+            ],
+            "name": "localhost",
+            "metrics": [
+              "datadog.agent.up"
+            ],
+            "classification": "host",
+            ...
+            ...
+            ...}]
+        [{
+          id: 1,
+          name: "localhost",
+          metrics: "datadog.agent.up",
+          status: "OK",
+          tags: ["env:test", "monitor_id:host_is_up"],
+          scopes: ["env:test"]
+        }]
+
+  """
   def get_monitor_details(%{"monitors" => monitors}) when is_map(monitors) do
     monitors
     |> List.flatten()
@@ -70,7 +160,8 @@ defmodule Ddog.Monitor do
         name: &1["name"],
         metrics: &1["metrics"],
         status: &1["status"],
-        tags: &1["tags"]
+        tags: &1["tags"],
+        scopes: &1["scopes"]
       }
     )
   end
