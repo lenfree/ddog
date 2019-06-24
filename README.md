@@ -34,10 +34,9 @@ $ export DATADOG_APP_KEY=<key>
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/ddog](https://hexdocs.pm/ddog).
+be found at [https://hexdocs.pm/ddog](https://hexdocs.pm/ddog/0.1.0).
 
 ## TBD
 
 1. Add tests
-2. Configure CI
-3. Add examples
+2. Add examples
