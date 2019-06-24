@@ -10,7 +10,16 @@ defmodule Ddog.MixProject do
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "Unofficial package to manage Datadog monitors."
+      description: "Unofficial package to manage Datadog monitors.",
+      package: package()
+    ]
+  end
+
+  defp package do
+    [
+      maintainers: ["Lenfree Yeung"],
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/lenfree/ddog"}
     ]
   end
 

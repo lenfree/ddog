@@ -11,11 +11,13 @@ test:
 	mix local.hex --force
 	mix local.rebar --force
 	mix deps.get
+	mix compile
 	mix test --color --cover
 
 .PHONY: publish
 publish:
-	mix hex.publish package --yes
+	mix hex.build
+	mix hex.publish --yes
 
 .PHONY: next-tag
 next-tag:
