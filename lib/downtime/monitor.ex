@@ -1,9 +1,7 @@
 defmodule Ddog.Monitor do
   alias HTTPoison
   alias Ddog.Helper
-  alias Ddog.MonitorQueryTag
-  alias Ddog.SetMonitorDowntime
-  alias Ddog.CancelMonitorDowntime
+  alias Ddog.Monitor.Downtime
 
   defp headers do
     [{"Content-type", "application/json"}]
@@ -37,7 +35,7 @@ defmodule Ddog.Monitor do
 
         iex> Monitor.call(
           :set_monitor_downtime,
-          %Ddog.SetMonitorDowntime{
+          %Ddog.Monitor.Downtime{
               monitor_tags: Ddog.Helper.build_query("env:test localhost"),
               scope: "env:test",
               end: end_downtime,
@@ -47,7 +45,7 @@ defmodule Ddog.Monitor do
 
         iex> Monitor.call(
           :cancel_monitor_downtime_by_scope,
-          %Ddog.SetMonitorDowntime{
+          %Ddog.Monitor.Downtime{
               scope: "env:test"
           })
         {:ok, %HTTPoison.Response.Body{}}
@@ -66,14 +64,14 @@ defmodule Ddog.Monitor do
     |> Helper.handle_response()
   end
 
-  def call(:set_monitor_downtime = action, %SetMonitorDowntime{} = body) do
+  def call(:set_monitor_downtime = action, %Downtime{} = body) do
     action
     |> dd_url()
     |> HTTPoison.post(body |> Poison.encode!(), headers())
     |> Helper.handle_response()
   end
 
-  def call(:cancel_monitor_downtime_by_scope = action, %CancelMonitorDowntime{} = body) do
+  def call(:cancel_monitor_downtime_by_scope = action, %Downtime{} = body) do
     action
     |> dd_url()
     |> HTTPoison.post(body |> Poison.encode!(), headers())
