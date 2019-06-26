@@ -18,6 +18,18 @@ defmodule Ddog.Helper do
     |> Enum.reduce(fn x, acc -> "#{acc} #{x}" end)
   end
 
+  def build_query(term) when is_atom(term) do
+    ":#{term}"
+  end
+
+  def build_query(term) when is_integer(term) do
+    term |> to_string
+  end
+
+  def build_query(term) do
+    term
+  end
+
   @doc """
   Accepts a list of monitors and return a prettified string. When argument
   is of type map, it returns a prettified json string.
