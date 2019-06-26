@@ -1,28 +1,27 @@
 defmodule DdogTest do
   use ExUnit.Case
-  use PropCheck
   alias Ddog.Helper
+  require ExUnitProperties
 
-  property "convert a list to string", [:verbose] do
-    forall x <- non_empty(char_list()) do
-      Helper.build_query(x) == join(x)
-    end
+  require IEx
+
+  test "build_query/1 with ascii input" do
+    terms =
+      ExUnitProperties.gen all term <- StreamData.list_of(StreamData.string(:ascii)) do
+        term
+      end
+      |> Enum.take(30)
+
+    assert Helper.build_query(terms) == terms |> List.flatten() |> Enum.join(" ")
   end
 
-  def join([head | _tail] = terms) when length(terms) <= 1 do
-    cond do
-      is_integer(head) ->
-        head |> to_string
+  test "build_query/1 with integers input" do
+    terms =
+      ExUnitProperties.gen all term <- StreamData.list_of(StreamData.integer()) do
+        term
+      end
+      |> Enum.take(30)
 
-      is_list(head) ->
-        head
-        |> List.flatten()
-        |> Enum.join(" ")
-    end
-  end
-
-  def join(terms) do
-    List.flatten(terms)
-    |> Enum.join(" ")
+    assert Helper.build_query(terms) == terms |> List.flatten() |> Enum.join(" ")
   end
 end

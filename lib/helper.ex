@@ -12,31 +12,11 @@ defmodule Ddog.Helper do
 
 
   """
-  def build_query([head | _tail]) when is_list(head) do
-    case Enum.empty?(head) do
-      true ->
-        ""
-
-      _ ->
-        List.flatten(head)
-        |> Enum.reduce(fn x, acc -> "#{acc} #{x}" end)
-    end
+  def build_query([_head | _tail] = terms) do
+    terms
+    |> List.flatten()
+    |> Enum.reduce(fn x, acc -> "#{acc} #{x}" end)
   end
-
-  def build_query([head | tail], acc) do
-    build_query(tail, "#{acc} #{to_string(head)}")
-  end
-
-  def build_query([head | tail]) do
-    build_query(tail, "#{head |> to_string}")
-  end
-
-  def build_query([head | _tail]) when is_atom(head) do
-    head |> to_string
-  end
-
-  def build_query([], acc), do: acc
-  def build_query(term), do: term
 
   @doc """
   Accepts a list of monitors and return a prettified string. When argument
