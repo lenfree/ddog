@@ -12,9 +12,22 @@ defmodule Ddog.Helper do
 
 
   """
-  def build_query(param) when is_list(param) do
-    param
-    |> Enum.reduce(fn x, acc -> "#{x} #{acc}" end)
+  def build_query([_head | _tail] = terms) do
+    terms
+    |> List.flatten()
+    |> Enum.reduce(fn x, acc -> "#{acc} #{x}" end)
+  end
+
+  def build_query(term) when is_atom(term) do
+    ":#{term}"
+  end
+
+  def build_query(term) when is_integer(term) do
+    term |> to_string
+  end
+
+  def build_query(term) do
+    term
   end
 
   @doc """

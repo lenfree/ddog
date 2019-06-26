@@ -36,7 +36,8 @@ defmodule Ddog.MixProject do
       {:httpoison, "~> 1.4"},
       {:poison, "~> 3.1"},
       {:ex_doc, "~> 0.19"},
-      {:earmark, "~> 1.3"}
+      {:earmark, "~> 1.3"},
+      {:stream_data, "~> 0.4.3", only: :test}
     ]
   end
 end
