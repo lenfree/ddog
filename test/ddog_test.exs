@@ -9,52 +9,20 @@ defmodule DdogTest do
     end
   end
 
-  def join(param) do
-    build(param)
-  end
-
-  def build([head | []]) do
-    list =
-      case is_list(head) and length(head) <= 1 do
-        true -> head |> hd
-        false -> head
-      end
-
+  def join([head | _tail] = terms) when length(terms) <= 1 do
     cond do
-      is_list(list) ->
-        Enum.map_join(list, fn x -> "#{x}" end)
+      is_integer(head) ->
+        head |> to_string
 
-      true ->
-        "#{list}"
+      is_list(head) ->
+        head
+        |> List.flatten()
+        |> Enum.join(" ")
     end
   end
 
-  def build([[] | tail]) do
-    list = tail |> List.flatten()
-
-    cond do
-      length(list) == 0 ->
-        ""
-
-      true ->
-        list |> Enum.map_join(fn x -> x end)
-    end
-  end
-
-  def build(param) when is_list(param) do
-    param
-    |> List.flatten()
-    |> Enum.reduce(fn h, acc ->
-      cond do
-        is_integer(h) and is_list(h) ->
-          h |> List.flatten() |> Enum.map_join(fn x -> "#{acc} #{to_string(x)}" end)
-
-        is_list(h) ->
-          h |> List.flatten() |> Enum.map_join(fn x -> "#{acc} #{x}" end)
-
-        true ->
-          "#{acc} #{h}"
-      end
-    end)
+  def join(terms) do
+    List.flatten(terms)
+    |> Enum.join(" ")
   end
 end
