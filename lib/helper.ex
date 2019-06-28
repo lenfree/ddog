@@ -12,22 +12,73 @@ defmodule Ddog.Helper do
 
 
   """
-  def build_query([_head | _tail] = terms) do
+  def build_query(terms) when is_binary(terms) do
     terms
-    |> List.flatten()
-    |> Enum.reduce(fn x, acc -> "#{acc} #{x}" end)
+  end
+
+  def build_query(terms) when is_integer(terms) do
+    terms |> to_string
+  end
+
+  def build_query(terms) when is_list(terms) do
+    terms
+    |> Enum.reject(fn x -> String.length(x) == 0 end)
+    |> build_query("")
   end
 
   def build_query(term) when is_atom(term) do
     ":#{term}"
   end
 
-  def build_query(term) when is_integer(term) do
-    term |> to_string
+  def build_query([]) do
+    ""
   end
 
-  def build_query(term) do
-    term
+  def build_query([], acc) do
+    acc
+  end
+
+  def build_query([head | []], acc) do
+    cond do
+      is_list(head) ->
+        [h | t] = head
+        build_query([t], "#{acc} #{h}")
+
+      is_binary(head) and String.length(head) == 0 ->
+        ""
+
+      is_binary(head) and String.length(acc) > 0 ->
+        "#{acc} #{head}"
+
+      true ->
+        "#{head}"
+    end
+  end
+
+  def build_query([head | tail], acc) do
+    cond do
+      String.length(head) == 0 ->
+        build_query(tail, "#{acc}")
+
+      is_binary(head) and String.length(acc) > 0 ->
+        build_query(tail, "#{acc} #{head}")
+
+      is_binary(head) ->
+        build_query(tail, "#{head}")
+
+      is_integer(head) ->
+        build_query(tail, "#{acc} #{to_string(head)}")
+
+      is_atom(head) ->
+        build_query(tail, "#{acc} :#{head}")
+
+      Enum.empty?(head) ->
+        build_query(tail, "#{acc}")
+
+      is_list(head) ->
+        [h | t] = head
+        build_query([t | tail], "#{acc} #{h}")
+    end
   end
 
   @doc """
