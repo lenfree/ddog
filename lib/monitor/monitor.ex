@@ -49,6 +49,12 @@ defmodule Ddog.Monitor do
               scope: "env:test"
           })
         {:ok, %HTTPoison.Response.Body{}}
+
+        iex> Monitor.call(
+          :delete_monitor,
+          "123"
+          )
+        {:ok, %HTTPoison.Response.Body{}}
   """
   def call(:list_all = action) do
     action
@@ -78,6 +84,13 @@ defmodule Ddog.Monitor do
     |> Helper.handle_response()
   end
 
+  def call(:delete_monitor = action, id) do
+    action
+    |> dd_url(id)
+    |> HTTPoison.delete()
+    |> Helper.handle_response()
+  end
+
   @monitor_url Application.get_env(:ddog, :monitor_url)
   defp dd_url(:list_all) do
     @monitor_url
@@ -103,6 +116,13 @@ defmodule Ddog.Monitor do
   defp dd_url(:search, %{query: _tag} = tags) do
     @monitor_search_url
     |> Helper.add_auth(tags)
+  end
+
+  defp dd_url(:delete_monitor, id) do
+    url = "#{@monitor_url}/#{id}"
+
+    url
+    |> Helper.add_auth()
   end
 
   @doc """
