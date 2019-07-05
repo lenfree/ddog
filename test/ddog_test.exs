@@ -7,13 +7,19 @@ defmodule DdogTest do
 
   describe "pass a list of ascii input returns a string with a ' ' in between each element" do
     property "list of strings input joins as a string should be equal to build_query/1 output" do
-      check all str <- list_of(filter(string(:ascii), &(String.length(&1) > 0))) do
+      check all str <- generate_string(),
+                str =
+                  str
+                  |> List.flatten()
+                  |> Enum.join(" ") do
         assert Helper.build_query(str) ==
                  str
-                 |> List.flatten()
-                 |> Enum.join(" ")
       end
     end
+  end
+
+  def generate_string() do
+    list_of(filter(string(:ascii), &(String.length(&1) > 0)))
   end
 
   describe "add_auth/2" do
@@ -32,9 +38,13 @@ defmodule DdogTest do
       end
     end
 
+    def generate_query() do
+      map_of(string(:ascii), string(:ascii))
+    end
+
     property "pass any string and query should return a url string with encoded query" do
       check all str <- string(:ascii),
-                query <- map_of(string(:ascii), string(:ascii)),
+                query <- generate_query(),
                 api_key <- string(:ascii),
                 api_key != "",
                 app_key <- string(:ascii),

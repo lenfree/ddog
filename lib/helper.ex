@@ -22,16 +22,28 @@ defmodule Ddog.Helper do
 
   def build_query(terms) when is_list(terms) do
     terms
-    |> Enum.reject(fn x -> String.length(x) == 0 end)
+    |> Enum.reject(&(check_length(&1) == 0))
     |> build_query("")
   end
 
   def build_query(term) when is_atom(term) do
-    ":#{term}"
+    "#{term}"
   end
 
   def build_query([]) do
     ""
+  end
+
+  def check_length(term) when is_integer(term) do
+    true
+  end
+
+  def check_length(term) when is_binary(term) do
+    String.length(term)
+  end
+
+  def check_length(term) when is_atom(term) do
+    term |> Atom.to_string() |> check_length
   end
 
   def build_query([], acc) do
@@ -50,34 +62,47 @@ defmodule Ddog.Helper do
       is_binary(head) and String.length(acc) > 0 ->
         "#{acc} #{head}"
 
+      is_integer(head) and String.length(acc) > 0 ->
+        "#{acc} #{to_string(head)}"
+
+      is_atom(head) and String.length(acc) > 0 ->
+        "#{acc} #{head}"
+
       true ->
         "#{head}"
     end
   end
 
   def build_query([head | tail], acc) do
-    cond do
-      String.length(head) == 0 ->
-        build_query(tail, "#{acc}")
+    require IEx
 
+    cond do
       is_binary(head) and String.length(acc) > 0 ->
+        build_query(tail, "#{acc} #{head}")
+
+      is_integer(head) and String.length(acc) > 0 ->
+        build_query(tail, "#{acc} #{to_string(head)}")
+
+      is_atom(head) and String.length(acc) > 0 ->
         build_query(tail, "#{acc} #{head}")
 
       is_binary(head) ->
         build_query(tail, "#{head}")
 
       is_integer(head) ->
-        build_query(tail, "#{acc} #{to_string(head)}")
+        build_query(tail, "#{to_string(head)}")
 
       is_atom(head) ->
-        build_query(tail, "#{acc} :#{head}")
+        build_query(tail, "#{head}")
 
       Enum.empty?(head) ->
         build_query(tail, "#{acc}")
 
-      is_list(head) ->
-        [h | t] = head
-        build_query([t | tail], "#{acc} #{h}")
+      String.length(head) == 0 ->
+        build_query(tail, "#{acc}")
+
+      true ->
+        build_query(tail, "#{head}")
     end
   end
 
@@ -98,7 +123,15 @@ defmodule Ddog.Helper do
   end
 
   def handle_response({:ok, %{status_code: 400, body: body}}) do
-    {:ok, body}
+    {:error, body}
+  end
+
+  def handle_response({:ok, %{status_code: 404, body: body}}) do
+    {:error, body}
+  end
+
+  def handle_response({:ok, %{status_code: 403}}) do
+    {:error, "invalid API/APP token"}
   end
 
   def handle_response({_, {:error, body}, %{status_code: _, body: body}}) do
